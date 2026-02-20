@@ -1,0 +1,22 @@
+---
+import '@styles/header.sass'
+import { Icon } from 'astro-icon/components'
+
+const { editorVersion } = Astro.props
+console.debug(editorVersion)
+---
+
+<header class="editor-header">
+	<div class="left" data-context="notes">
+		<form>
+			<input type="file" multiple accept=".md,.txt" id="upload" />
+		</form>
+		<button class="back"><Icon name="back" /></button>
+		<button class="add"><Icon name="add" /></button>
+	</div>
+	{editorVersion && <span class="subtitle">v{editorVersion}</span>}
+	<div class="right">
+		<div role="status" class="status"></div>
+		<button class="show-menu"><Icon name="more" /></button>
+	</div>
+</header>

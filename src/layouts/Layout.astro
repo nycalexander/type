@@ -1,0 +1,76 @@
+---
+import Icons from '@components/utils/Icons.astro'
+import '@styles/global.sass'
+
+const defaultTitle = 'type.'
+const {
+  title = defaultTitle,
+  simpleTitle = false,
+  description = 'Zen editor for those who love simplicity',
+  class: className,
+} = Astro.props
+
+let pageTitle = defaultTitle
+if (title !== defaultTitle)
+  pageTitle = simpleTitle ? title : `${title} | ${defaultTitle}`
+
+const base = Astro.url.pathname.endsWith('/')
+  ? Astro.url.pathname
+  : Astro.url.pathname + '/'
+---
+
+<!doctype html>
+<html lang="en" data-font="sans" data-theme="light">
+  <head>
+    <base href={base} target="_self" />
+    <meta charset="UTF-8" />
+    <title>type.</title>
+    <meta name="description" content={description} />
+    <meta
+      name="viewport"
+      content="width=device-width initial-scale=1 interactive-widget=resizes-content"
+    />
+    <meta name="theme-color" content="var(--color-background)" />
+
+    <meta name="msapplication-TileColor" content="#575757" />
+    <meta name="msapplication-navbutton-color" content="#161616" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="#161616" />
+
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:image" content="/og/main.png" />
+    <meta property="vk:image" content="/og/main-vk.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="/og/main.png" />
+
+    <Icons />
+    <link href="https://fonts.cdnfonts.com/css/sf-pro-display" rel="stylesheet" />
+    <script src="/scripts/apple-emoji.js" defer></script>
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <script is:inline>
+      // This thing comes inline to avoid flickering when your
+      // theme is not default. Sorry, just saving your eyes!
+      function loadMode(mode) {
+        const value = localStorage.getItem(mode)
+        if (value && value !== 'undefined') {
+          document.documentElement.dataset[mode] = value
+          console.debug(`Loaded ${mode} ${value}`)
+        }
+      }
+      loadMode('theme')
+      loadMode('font')
+    </script>
+
+    <title>{pageTitle}</title>
+  </head>
+  <body class={className}>
+    <!-- <h1 class="page-heading">Zen-editor for just typing</h1> -->
+    <slot />
+  </body>
+</html>
+<script>
+  console.log(
+    '%cHello 🤙🏻',
+    'font-size: 1rem; background-color: #eee; padding: 0.5rem 1rem; border-radius: 0.25rem',
+  )
+</script>

@@ -1,0 +1,66 @@
+@import @styles/blocks
+.editor
+    position: relative
+
+    width: 100%
+    min-height: 60vh
+    max-height: 100%
+
+    border-radius: var(--radius-l)
+
+    margin: 0 auto
+    transition: height 1ms 150ms, background-color var(--transition-s)
+    animation: 300ms fade-in linear
+
+    // When we show notes
+    &.collapsed
+        min-height: 8rem
+
+    > p:only-child::before
+        display: none
+        content: 'Start typing...'
+
+        position: absolute
+        top: 0
+        left: 0
+
+        color: var(--color-main-25)
+        pointer-events: none
+        animation: none
+
+    &.loading
+        > p:only-child::before
+            content: 'Loading note...'
+            color: var(--color-main)
+            animation: pulse 2s linear infinite alternate
+
+    // Editor is empty
+    > p:only-child
+        &:has(br.ProseMirror-trailingBreak:only-child)
+            &::before
+                display: block
+
+    @include blocks
+
+    &[data-placeholder-show]
+        background-color: var(--color-main-05)
+        position: relative
+
+        > p:only-child::before
+            opacity: 0
+
+main:not(.notes-shown)
+    .editor
+        padding-bottom: 25vh
+    ul#notes
+        animation: none
+        opacity: 0
+        display: none
+        pointer-events: none
+
+.milkdown
+    position: relative
+
+// Prosemirror asked me to do this
+.ProseMirror
+    white-space: pre-wrap

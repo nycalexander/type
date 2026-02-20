@@ -1,0 +1,61 @@
+---
+import { Icon } from 'astro-icon/components'
+import Layout from './Layout.astro'
+import '@styles/blocks.sass'
+
+const { frontmatter } = Astro.props
+---
+
+<Layout title={frontmatter?.title} simpleTitle={frontmatter?.simpleTitle}>
+	{
+		!frontmatter?.hideHeader && (
+			<header class="editor-header">
+				<a class="back" href="/">
+					{!frontmatter?.hideBack && <Icon name="back" />}go to editor
+				</a>
+			</header>
+		)
+	}
+	<div class="blocks" contenteditable={frontmatter?.editable || false}>
+		<slot />
+	</div>
+</Layout>
+<style lang="scss">
+	@import '@styles/blocks.sass';
+
+	header.editor-header {
+		display: flex;
+		justify-content: space-between;
+		width: 100%;
+
+		margin-bottom: calc(var(--space-m) + var(--space-l));
+
+		font-family: var(--font-sans);
+		font-size: var(--font-size-xs);
+
+		z-index: 2;
+		a {
+			display: flex;
+			gap: var(--space-m);
+			align-items: center;
+			font-weight: 500;
+			opacity: 0.25;
+
+			transition:
+				opacity var(--transition-s),
+				transform var(--transition-m);
+			&:hover {
+				opacity: 0.5;
+			}
+			&:active {
+				transform: scale(0.8);
+			}
+		}
+
+		svg {
+			display: block;
+			height: 24px;
+			width: 24px;
+		}
+	}
+</style>

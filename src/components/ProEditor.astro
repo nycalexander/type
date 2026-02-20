@@ -1,0 +1,27 @@
+---
+import '@styles/milkdown/style.sass'
+import '@styles/milkdown/crepe.sass'
+---
+
+<main></main>
+<script>
+	import { Crepe } from '@milkdown/crepe'
+
+	const crepe = new Crepe({
+		root: document.getElementsByTagName('main')[0],
+		features: {
+			[Crepe.Feature.CodeMirror]: false,
+			[Crepe.Feature.Toolbar]: false,
+		},
+		featureConfigs: {
+			[Crepe.Feature.Placeholder]: {
+				text: 'Start typing...',
+				mode: 'doc',
+			},
+		},
+	})
+
+	crepe.create().then(() => {
+		console.debug('Editor created')
+	})
+</script>
