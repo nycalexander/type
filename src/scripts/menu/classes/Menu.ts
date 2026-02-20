@@ -44,12 +44,12 @@ export class Menu {
 
 		console.debug(`Init render`)
 		this.renderActions()
-		this.inputEl.addEventListener('input', () => this.search())
-		this.toggleEl.addEventListener('click', () => this.toggle())
+		this.inputEl?.addEventListener('input', () => this.search())
+		this.toggleEl?.addEventListener('click', () => this.toggle())
 
 		// TODO: Legacy. Delete in 2026 or smth
 		this.showMenuEl = getByClass('show-menu') as HTMLButtonElement
-		this.showMenuEl.addEventListener('click', () => this.toggle())
+		if (this.showMenuEl) this.showMenuEl.addEventListener('click', () => this.toggle())
 
 		this.actionsEl.addEventListener('mousemove', (e) => {
 			const target = e.target as HTMLElement
@@ -62,17 +62,18 @@ export class Menu {
 				this.select(+target.dataset.index)
 		})
 
-		document.documentElement.addEventListener('click', (e: MouseEvent) => {
-			console.debug(`Menu is opened: ${this.opened}`)
-			if (!this.opened) return
-			if (this.showMenuEl.contains(e.target as Node)) return
-			let rect = this.actionsEl.getBoundingClientRect()
-			if (this.rootEl.contains(e.target as Node)) return
-			if (e.clientX > rect.left && e.clientX < rect.right &&
-				e.clientY > rect.top && e.clientY < rect.bottom)
-				return
-			this.toggle(false)
-		})
+			document.documentElement.addEventListener('click', (e: MouseEvent) => {
+				console.debug(`Menu is opened: ${this.opened}`)
+				if (!this.opened) return
+				if (this.showMenuEl && this.showMenuEl.contains(e.target as Node)) return
+				if (!this.actionsEl) return this.toggle(false)
+				let rect = this.actionsEl.getBoundingClientRect()
+				if (this.rootEl && this.rootEl.contains(e.target as Node)) return
+				if (e.clientX > rect.left && e.clientX < rect.right &&
+					e.clientY > rect.top && e.clientY < rect.bottom)
+					return
+				this.toggle(false)
+			})
 	}
 
 	search(queryChanged = true) {
@@ -99,8 +100,8 @@ export class Menu {
 		const open = show === undefined ? !this.opened : show
 		console.debug(`Toggling menu with show: ${show}. ${open ? 'Opening' : 'Closing'}`)
 		if (open) {
-			state.editorEl.blur()
-			window.getSelection().removeAllRanges()
+			if (state.editorEl && typeof state.editorEl.blur === 'function') state.editorEl.blur()
+			if (window.getSelection) try { window.getSelection().removeAllRanges() } catch {}
 			this.closeViews()
 			this.popupEl.classList.add(openClass)
 			hasKeyboard && this.inputEl.select()
@@ -113,7 +114,7 @@ export class Menu {
 				this.search()
 				this.select(0, true)
 			}, 175)
-			hasKeyboard && state.editorEl.focus()
+			hasKeyboard && state.editorEl && typeof state.editorEl.focus === 'function' && state.editorEl.focus()
 			this.opened = false
 		}
 		return open
@@ -129,7 +130,7 @@ export class Menu {
 		}
 		// Else just close menu
 		state.menu.toggle(false)
-		state.editorEl.focus()
+		if (state.editorEl && typeof state.editorEl.focus === 'function') state.editorEl.focus()
 		// Approve the esc key is handled
 		return true
 	}
@@ -192,24 +193,32 @@ export class Menu {
 	}
 
 	hide(id: MenuActionId) {
-		allActions.find(x => x.id === id).hidden = true
+		const a = allActions.find(x => x.id === id)
+		if (!a) return
+		a.hidden = true
 		try { this.select(++this.selected) } catch { }
 	}
 
 	show(id: MenuActionId) {
-		allActions.find(x => x.id === id).hidden = false
+		const a = allActions.find(x => x.id === id)
+		if (!a) return
+		a.hidden = false
 	}
 
 	openView(id: string) {
 		for (const view of this.views) {
-			(view as HTMLElement).hidden = true
+			;(view as HTMLElement).hidden = true
 		}
 		const currentView = getById("view-" + id)
+		if (!currentView) {
+			console.warn(`Requested view view-${id} not found`)
+			return
+		}
 		currentView.hidden = false
 
 		console.debug('Focusing')
 		console.debug(currentView)
-		currentView.focus()
+		if (typeof (currentView as HTMLElement).focus === 'function') (currentView as HTMLElement).focus()
 		this.viewOpened = true
 	}
 
@@ -219,7 +228,7 @@ export class Menu {
 		for (const view of this.views) {
 			(view as HTMLElement).hidden = true
 		}
-		this.actionsView.hidden = false
+		if (this.actionsView) this.actionsView.hidden = false
 		hasKeyboard && this.inputEl.focus()
 		this.viewOpened = false
 	}
@@ -299,9 +308,13 @@ export function initMenuElements(parentElement = document.documentElement) {
 }
 
 function hide(id: MenuActionId) {
-	allActions.find(x => x.id === id).hidden = true
+	const a = allActions.find(x => x.id === id)
+	if (!a) return
+	a.hidden = true
 }
 
 function show(id: MenuActionId) {
-	allActions.find(x => x.id === id).hidden = false
+	const a = allActions.find(x => x.id === id)
+	if (!a) return
+	a.hidden = false
 }
