@@ -3,8 +3,9 @@
 (function () {
   'use strict'
 
-  // Use larger source images (128px) so browsers can downscale with smoother anti-aliasing
-  const EMOJI_CDN_BASE = 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple@latest/img/apple/128'
+  // CDN base (try larger sizes first, fall back to smaller ones)
+  const EMOJI_CDN_BASE = 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple@latest/img/apple'
+  const EMOJI_SIZES = [256, 128]
 
   // Test for emoji characters (uses Unicode property escape)
   const emojiTest = (() => {
@@ -56,7 +57,18 @@
         img.className = 'apple-emoji'
         img.decoding = 'async'
         img.crossOrigin = 'anonymous'
-        img.src = `${EMOJI_CDN_BASE}/${filename}.png`
+        // Try preferred sizes (256 -> 128). If a size 404s, the onerror handler will try the next.
+        let _sizeIndex = 0
+        const _setSrcForSize = (i) => {
+          if (i >= EMOJI_SIZES.length) return
+          img.src = `${EMOJI_CDN_BASE}/${EMOJI_SIZES[i]}/${filename}.png`
+          img.dataset.emojiSize = EMOJI_SIZES[i]
+          img.onerror = () => {
+            img.onerror = null
+            _setSrcForSize(i + 1)
+          }
+        }
+        _setSrcForSize(0)
         img.alt = seg
         img.draggable = false
 
@@ -66,7 +78,9 @@
           try {
             const parent = img.parentElement || document.documentElement
             const fontSize = parseFloat(getComputedStyle(parent).fontSize) || 16
-            const targetPx = Math.max(12, Math.round(fontSize * (window.devicePixelRatio || 1)))
+            const cssPx = Math.max(12, Math.round(fontSize))
+            const dpr = Math.max(1, window.devicePixelRatio || 1)
+            const targetPx = Math.max(12, Math.round(cssPx * dpr))
 
             // Prefer createImageBitmap with resizeQuality when available
             if (typeof createImageBitmap === 'function') {
@@ -84,6 +98,10 @@
                     canvas.setAttribute('role', 'img')
                     canvas.setAttribute('aria-label', img.alt || '')
                     canvas.draggable = false
+                    // Force CSS display size to 1em so browser downsamples high-res canvas smoothly
+                    canvas.style.width = '1em'
+                    canvas.style.height = '1em'
+                    canvas.style.verticalAlign = '-0.125em'
                     img.replaceWith(canvas)
                   })
                 return
@@ -112,6 +130,8 @@
               srcCanvas.width = sw
               srcCanvas.height = sh
               const sctx = srcCanvas.getContext('2d')
+              sctx.imageSmoothingEnabled = true
+              sctx.imageSmoothingQuality = 'high'
               sctx.drawImage(imgEl, 0, 0)
               const srcData = sctx.getImageData(0, 0, sw, sh).data
 
@@ -199,6 +219,9 @@
               c.setAttribute('role', 'img')
               c.setAttribute('aria-label', img.alt || '')
               c.draggable = false
+              c.style.width = '1em'
+              c.style.height = '1em'
+              c.style.verticalAlign = '-0.125em'
               img.replaceWith(c)
             } catch (err) {
               // If anything goes wrong, leave the original image as-is

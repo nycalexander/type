@@ -3,29 +3,49 @@ import MenuView from '@layouts/MenuView.astro'
 ---
 
 <MenuView id="formatting" title="Text formatting">
-	<div class="controls">
-		<label for="line-height">Line height: <output id="lh-output"></output></label>
-		<input id="line-height" type="range" min="1" max="2" step="0.01" />
-	</div>
-
-	<div class="controls">
-		<label for="letter-spacing">Letter spacing: <output id="ls-output"></output></label>
-		<input id="letter-spacing" type="range" min="-0.05" max="0.3" step="0.01" />
-	</div>
-
-	<div class="controls">
-		<button id="reset-format" class="primary button">Reset to defaults</button>
-	</div>
+  <div class="controls lh-control">
+    <label for="line-height">
+      <span class="lh-label">Line height</span>
+      <output id="lh-output"></output>
+    </label>
+    <div class="lh-row">
+      <span class="lh-icon small" aria-hidden="true">A</span>
+      <input id="line-height" type="range" min="1" max="2" step="0.01" />
+      <span class="lh-icon large" aria-hidden="true">A</span>
+    </div>
+  </div>
 </MenuView>
 
 <style lang="scss">
-	.controls {
+		.controls {
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-m);
 		padding-right: var(--space-xl);
 		padding-bottom: var(--space-l);
 	}
+
+	.lh-control {
+		padding-top: var(--space-s);
+	}
+
+	.lh-row {
+		display: flex;
+		align-items: center;
+		gap: var(--space-s);
+	}
+
+	.lh-icon {
+		color: var(--color-main-50);
+		user-select: none;
+		width: 1.25rem;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.lh-icon.small { font-size: 0.8rem }
+	.lh-icon.large { font-size: 1.15rem }
 
 	label {
 		font-size: var(--font-size-s);
@@ -43,13 +63,12 @@ import MenuView from '@layouts/MenuView.astro'
 		margin-top: var(--space-m);
 	}
 </style>
-
 <script is:inline>
 	(function () {
-		const root = document.documentElement
+		const editorEl = document.getElementById('editor') || document.documentElement
 
 		function readVar(name, fallback) {
-			const v = getComputedStyle(root).getPropertyValue(name)
+			const v = getComputedStyle(editorEl).getPropertyValue(name) || getComputedStyle(document.documentElement).getPropertyValue(name)
 			return v ? parseFloat(v) : fallback
 		}
 
@@ -59,58 +78,25 @@ import MenuView from '@layouts/MenuView.astro'
 
 		function init() {
 			const lhInput = document.getElementById('line-height')
-			const lsInput = document.getElementById('letter-spacing')
 			const lhOut = document.getElementById('lh-output')
-			const lsOut = document.getElementById('ls-output')
-			const resetBtn = document.getElementById('reset-format')
 
 			const storedLH = localStorage.getItem('line-height')
-			const storedLS = localStorage.getItem('letter-spacing')
 			const initialLH = storedLH ? parseFloat(storedLH) : readVar('--line-height', 1.4)
-			const initialLS = storedLS ? parseFloat(storedLS) : readVar('--letter-spacing', 0)
 
 			if (lhInput) lhInput.value = String(initialLH)
-			if (lsInput) lsInput.value = String(initialLS)
 			if (lhOut) lhOut.textContent = formatNumber(initialLH)
-			if (lsOut) lsOut.textContent = formatNumber(initialLS)
 
-			root.style.setProperty('--line-height', String(initialLH))
-			root.style.setProperty('--letter-spacing', String(initialLS) + 'px')
+			// Scope the variable to the editor element only so menus and overlays are unaffected
+			editorEl.style.setProperty('--line-height', String(initialLH))
 
 			if (lhInput) {
 				lhInput.addEventListener('input', (e) => {
 					const target = e.target
 					if (!(target instanceof HTMLInputElement)) return
 					const v = target.value
-					root.style.setProperty('--line-height', v)
+					editorEl.style.setProperty('--line-height', v)
 					if (lhOut) lhOut.textContent = formatNumber(v)
 					localStorage.setItem('line-height', v)
-				})
-			}
-
-			if (lsInput) {
-				lsInput.addEventListener('input', (e) => {
-					const target = e.target
-					if (!(target instanceof HTMLInputElement)) return
-					const v = target.value
-					root.style.setProperty('--letter-spacing', v + 'px')
-					if (lsOut) lsOut.textContent = formatNumber(v)
-					localStorage.setItem('letter-spacing', v)
-				})
-			}
-
-			if (resetBtn) {
-				resetBtn.addEventListener('click', () => {
-					const defLH = 1.4
-					const defLS = 0
-					root.style.setProperty('--line-height', String(defLH))
-					root.style.setProperty('--letter-spacing', String(defLS) + 'px')
-					if (lhInput) lhInput.value = String(defLH)
-					if (lsInput) lsInput.value = String(defLS)
-					if (lhOut) lhOut.textContent = formatNumber(defLH)
-					if (lsOut) lsOut.textContent = formatNumber(defLS)
-					localStorage.removeItem('line-height')
-					localStorage.removeItem('letter-spacing')
 				})
 			}
 		}
