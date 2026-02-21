@@ -83,7 +83,7 @@ const { editorVersion } = Astro.props
 		let overlay: HTMLElement | null = null
 		let lastMD = ''
 
-		function createOverlay(md: string) {
+		function createOverlay() {
 			if (overlay) return overlay
 			overlay = document.createElement('div')
 			overlay.className = 'markdown-overlay'
@@ -115,13 +115,15 @@ const { editorVersion } = Astro.props
 			return overlay
 		}
 
-		function showOverlay() {
+		function showOverlay(parentEl?: HTMLElement) {
 			try {
 				lastMD = getMD()
-				const el = state.editorEl || document.getElementById('editor') || document.querySelector('.editor') || document.documentElement
-				const ov = createOverlay(lastMD)
+				const idEditor = document.getElementById('editor')
+				const parent = parentEl || state.editorEl || idEditor || document.documentElement
+				const ov = createOverlay()
 				;(ov.querySelector('.md-textarea') as HTMLTextAreaElement).value = lastMD
-				el.appendChild(ov)
+				// Ensure we don't append overlay multiple times
+				if (!parent.contains(ov)) parent.appendChild(ov)
 				;(ov.querySelector('.md-textarea') as HTMLTextAreaElement).focus()
 			} catch (e) {
 				console.warn('showOverlay failed', e)
@@ -135,10 +137,25 @@ const { editorVersion } = Astro.props
 		}
 
 		function handleClassChange() {
-			const el = state.editorEl || document.getElementById('editor') || document.querySelector('.editor') || document.documentElement
-			const enabled = el.classList.contains('show-markdown-formatting') || document.documentElement.classList.contains('show-markdown-formatting')
-			if (enabled) showOverlay()
-			else hideOverlay()
+			const cls = 'show-markdown-formatting'
+			const idEditor = document.getElementById('editor')
+			const candidates = [
+				idEditor,
+				state.editorEl,
+				document.querySelector('.editor'),
+				document.documentElement,
+			].filter(Boolean) as HTMLElement[]
+
+			const targetWithClass = candidates.find((el) => el && el.classList && el.classList.contains(cls))
+			const enabled = Boolean(targetWithClass)
+
+			if (enabled) {
+				// Append overlay to the element that actually has the class so it visually sits
+				// on top of the editor area where the user toggled formatting.
+				showOverlay(targetWithClass || state.editorEl || idEditor || document.documentElement)
+			} else {
+				hideOverlay()
+			}
 		}
 
 		const docObserver = new MutationObserver(handleClassChange)
