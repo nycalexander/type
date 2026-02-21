@@ -10,89 +10,97 @@
 
     margin: 0 auto
     transition: height 1ms 150ms, background-color var(--transition-s)
-    animation: 300ms fade-in linear
+    @import @styles/blocks
 
-    // When we show notes
-    &.collapsed
-        min-height: 8rem
-
-    > p:only-child::before
-        display: none
-        content: 'Start typing...'
-
-        position: absolute
-        top: 0
-        left: 0
-
-        color: var(--color-main-25)
-        pointer-events: none
-        animation: none
-
-    &.loading
-        > p:only-child::before
-            content: 'Loading note...'
-            color: var(--color-main)
-            animation: pulse 2s linear infinite alternate
-
-    // Editor is empty
-    > p:only-child
-        &:has(br.ProseMirror-trailingBreak:only-child)
-            &::before
-                display: block
-
-    @include blocks
-
-    &[data-placeholder-show]
-        background-color: var(--color-main-05)
+    .editor
         position: relative
 
-        > p:only-child::before
-            opacity: 0
-
-main:not(.notes-shown)
-    .editor
-        padding-bottom: 25vh
-    ul#notes
-        animation: none
-        opacity: 0
-        display: none
-        pointer-events: none
-
-.milkdown
-    position: relative
-
-// Prosemirror asked me to do this
-.ProseMirror
-    white-space: pre-wrap
-
-
-/* Markdown overlay (raw markdown view) */
-.markdown-overlay
-    position: absolute
-    inset: 0
-    z-index: 50
-    display: flex
-    flex-direction: column
-    background: var(--color-background)
-    border-radius: var(--radius-l)
-    padding: var(--space-m)
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12)
-
-    .markdown-toolbar
-        display: flex
-        justify-content: flex-end
-        gap: var(--space-s)
-        margin-bottom: var(--space-s)
-
-    .md-textarea
-        flex: 1
         width: 100%
-        resize: none
-        font-family: var(--font-mono)
-        font-size: var(--font-size-s)
-        color: var(--color-main)
-        background: transparent
-        border: 1px solid var(--color-main-05)
-        border-radius: var(--radius-m)
+        min-height: 60vh
+        max-height: 100%
+
+        border-radius: var(--radius-l)
+
+        margin: 0 auto
+        transition: height 1ms 150ms, background-color var(--transition-s)
+        animation: 300ms fade-in linear
+
+        // When we show notes
+        &.collapsed
+            min-height: 8rem
+
+        > p:only-child::before
+            display: none
+            content: 'Start typing...'
+
+            position: absolute
+            top: 0
+            left: 0
+
+            color: var(--color-main-25)
+            pointer-events: none
+            animation: none
+
+        &.loading
+            > p:only-child::before
+                content: 'Loading note...'
+                color: var(--color-main)
+                animation: pulse 2s linear infinite alternate
+
+        // Editor is empty
+        > p:only-child
+            &:has(br.ProseMirror-trailingBreak:only-child)
+                &::before
+                    display: block
+
+        @include blocks
+
+        &[data-placeholder-show]
+            background-color: var(--color-main-05)
+            position: relative
+
         padding: var(--space-m)
-        min-height: 200px
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12)
+
+        .markdown-toolbar
+            display: flex
+            justify-content: flex-end
+            gap: var(--space-s)
+            margin-bottom: var(--space-s)
+
+        .md-textarea
+            flex: 1
+            width: 100%
+            resize: none
+            font-family: var(--font-mono)
+            font-size: var(--font-size-s)
+            color: var(--color-main)
+            background: transparent
+            border: 1px solid var(--color-main-05)
+            border-radius: var(--radius-m)
+            padding: var(--space-m)
+            min-height: 200px
+
+    .md-marker
+        display: none
+        color: var(--muted-color, #7a7a7a)
+        font-family: var(--mono-font, ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace)
+        font-size: 0.95em
+        white-space: pre
+        -webkit-font-smoothing: antialiased
+        -moz-osx-font-smoothing: grayscale
+
+    /* When toggled, show the markers in the primary editor */
+    .show-markdown-formatting .md-marker
+        display: inline
+
+    /* Block-level markers that should appear before the block */
+    .md-heading
+        margin-right: 0.35rem
+    .md-quote
+        margin-right: 0.25rem
+    .md-codeblock, .md-codeblock-end
+        display: block
+        color: var(--muted-color)
+        font-family: var(--mono-font)
+        margin: 0.25rem 0
